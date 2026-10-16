@@ -1,0 +1,11 @@
+build/
+sdkconfig.old
+sdkconfig.ci
+dependencies.lock
+managed_components/
+.vscode/
+.idea/
+*.pyc
+__pycache__/
+.DS_Store
+*.bak

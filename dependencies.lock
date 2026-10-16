@@ -1,0 +1,24 @@
+dependencies:
+  espressif/led_strip:
+    dependencies: []
+    source:
+      path: D:\XBOX-PS4\Grok\RemotePS5\esp32-ps5-xbox-remote-github\components\espressif__led_strip
+      type: local
+    version: 2.5.5
+  idf:
+    source:
+      type: idf
+    version: 5.4.4
+  nikas-belogolov/nanopb:
+    dependencies: []
+    source:
+      path: D:\XBOX-PS4\Grok\RemotePS5\esp32-ps5-xbox-remote-github\components\nikas-belogolov__nanopb
+      type: local
+    version: 0.4.9
+direct_dependencies:
+- espressif/led_strip
+- idf
+- nikas-belogolov/nanopb
+manifest_hash: 997344864da0c2aeff74284686f8e6e1eb4bd04e3dca4a22a57fae7ceb16252b
+target: esp32s3
+version: 2.0.0

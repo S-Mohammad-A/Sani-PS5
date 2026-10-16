@@ -1,0 +1,89 @@
+# Board: ESP32-S3 with 16MB flash and 8MB PSRAM
+CONFIG_IDF_TARGET="esp32s3"
+
+# --- Flash ---
+CONFIG_ESPTOOLPY_FLASHSIZE_16MB=y
+CONFIG_PARTITION_TABLE_CUSTOM=y
+CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="partitions.csv"
+CONFIG_PARTITION_TABLE_TWO_OTA=n
+
+# --- PSRAM (8MB) ---
+CONFIG_SPIRAM=y
+CONFIG_SPIRAM_MODE_OCT=y
+CONFIG_SPIRAM_SPEED_80M=y
+CONFIG_SPIRAM_USE_MALLOC=y
+
+# --- Bluetooth (for Bluepad32 / BTstack) ---
+CONFIG_BT_ENABLED=y
+CONFIG_BT_BLUEDROID_ENABLED=n
+CONFIG_BT_CONTROLLER_ONLY=y
+# These two only apply to the original ESP32 (Classic/BR+BLE dual mode);
+# they are simply inert/ignored on ESP32-S3, which only has a BLE radio.
+CONFIG_BTDM_CTRL_MODE_BTDM=y
+CONFIG_BTDM_CTRL_MODEM_SLEEP=n
+
+# --- Bluepad32 options ---
+# REQUIRED: tells bluepad32 to use our custom platform (bluepad32_bridge.c)
+# instead of one of its built-in platforms (unijoysticle, airlift, etc.)
+CONFIG_BLUEPAD32_PLATFORM_CUSTOM=y
+CONFIG_BLUEPAD32_MAX_DEVICES=1
+# Needs to be disabled on ESP32-S3/C3/C6 - see:
+# https://github.com/bluekitchen/btstack/issues/599
+CONFIG_BTSTACK_AUDIO=n
+
+# --- Wi-Fi ---
+CONFIG_ESP_WIFI_SSID_MAX_LEN=32
+
+# --- Main task stack ---
+# app_main() runs on this task, and since btstack_run_loop_execute()
+# never returns, BTstack's own processing (SM/security manager identity
+# resolving, GATT, etc.) also runs on it. The default (~3584 bytes) was
+# too small and caused a stack overflow crash during BLE reconnection.
+CONFIG_ESP_MAIN_TASK_STACK_SIZE=12288
+
+# --- pthread default stack size ---
+# chiaki_thread_create() always calls pthread_create() with a NULL attr,
+# so every chiaki worker thread (regist, and later ctrl/senkusha/session)
+# uses this default. The registration call chain nests several functions
+# each with their own sizeable local buffers/contexts, and 8192 still
+# wasn't enough (the crash just moved deeper into the same call chain) -
+# this has real headroom for that plus what's coming up next (ecdh/gkcrypt).
+CONFIG_PTHREAD_TASK_STACK_SIZE_DEFAULT=16384
+
+# --- HTTP server hardening ---
+# A phone/browser can send request headers well beyond the 512-byte
+# default (User-Agent, Sec-CH-UA client hints, Accept-Language, captive
+# portal probes, cookies, ...). Hitting that limit has caused a crash
+# (LoadProhibited inside esp_http_server's parser) instead of a clean
+# error response on some IDF versions, so we raise both limits here.
+CONFIG_HTTPD_MAX_REQ_HDR_LEN=2048
+CONFIG_HTTPD_MAX_URI_LEN=1024
+
+# --- Heap corruption detection (temporary safety net while debugging) ---
+# Adds guard bytes around every heap allocation so any further
+# out-of-bounds write panics immediately, at its real location, instead
+# of silently corrupting heap metadata until something else stumbles on
+# it later. Safe to turn off again once things are stable (it has a
+# performance/RAM cost).
+CONFIG_HEAP_POISONING_COMPREHENSIVE=y
+
+# --- mbedtls elliptic curve ---
+# chiaki's ECDH handshake (ecdh.c) specifically uses the secp256k1 curve
+# (PlayStation's choice, not a TLS-common one), which ESP-IDF's default
+# mbedtls config does not enable (to save flash). Without this,
+# mbedtls_ecp_group_load() fails at runtime with "feature unavailable".
+CONFIG_MBEDTLS_ECP_DP_SECP256K1_ENABLED=y
+
+# --- mbedtls hardware AES acceleration ---
+# ESP32-S3 has a hardware AES/GCM accelerator, and ESP-IDF's default
+# mbedtls config redirects mbedtls_gcm_starts() to its own
+# esp_aes_gcm_starts(), which has a DIFFERENT argument list than the
+# standard mbedtls API chiaki's gkcrypt.c was written against
+# ("too many arguments" compile error). Disabling hardware AES falls
+# back to the plain software implementation with the standard
+# signature. A small performance cost, irrelevant for our low-bandwidth
+# controller-only crypto.
+CONFIG_MBEDTLS_HARDWARE_AES=n
+
+# If your board has Quad PSRAM instead of Octal, replace the line below:
+# CONFIG_SPIRAM_MODE_QUAD=y
