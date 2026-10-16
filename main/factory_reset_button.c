@@ -8,17 +8,23 @@
 #include "esp_system.h"
 
 static const char *TAG = "factory_rst";
+static volatile bool s_reset_pending;
 
-static void do_factory_reset_and_reboot(void)
+static void factory_reset_worker(void *arg)
 {
-    ESP_LOGW(TAG, "GPIO%d pressed — factory reset (drift/map/AP/GPIO) + reboot", FACTORY_RESET_GPIO);
+    (void)arg;
+    ESP_LOGW(TAG, "Factory reset worker: restoring defaults…");
     if (config_store_reset_defaults() != ESP_OK) {
         ESP_LOGE(TAG, "config_store_reset_defaults failed");
+        s_reset_pending = false;
+        vTaskDelete(NULL);
         return;
     }
     bluepad32_bridge_reload_input_tuning();
-    vTaskDelay(pdMS_TO_TICKS(200));
+    ESP_LOGW(TAG, "Defaults restored — rebooting");
+    vTaskDelay(pdMS_TO_TICKS(300));
     esp_restart();
+    vTaskDelete(NULL);
 }
 
 static void factory_reset_task(void *arg)
@@ -31,15 +37,20 @@ static void factory_reset_task(void *arg)
     for (;;) {
         int raw = gpio_get_level(FACTORY_RESET_GPIO);
         if (raw != stable) {
-            if ((xTaskGetTickCount() - changed_at) >= pdMS_TO_TICKS(30))
+            if ((xTaskGetTickCount() - changed_at) >= pdMS_TO_TICKS(40))
                 stable = raw;
         } else {
             changed_at = xTaskGetTickCount();
         }
 
-        if (last == 1 && stable == 0)
-            do_factory_reset_and_reboot();
-
+        if (last == 1 && stable == 0 && !s_reset_pending) {
+            s_reset_pending = true;
+            ESP_LOGW(TAG, "GPIO%d pressed — scheduling factory reset", FACTORY_RESET_GPIO);
+            if (xTaskCreate(factory_reset_worker, "rst_work", 8192, NULL, 5, NULL) != pdPASS) {
+                ESP_LOGE(TAG, "factory_reset_worker create failed");
+                s_reset_pending = false;
+            }
+        }
         last = stable;
         vTaskDelay(pdMS_TO_TICKS(20));
     }

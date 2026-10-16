@@ -8,10 +8,21 @@
 #include "config_store.h"
 
 #define CONNECT_BUTTON_POLL_MS 20
-#define CONNECT_BUTTON_DEBOUNCE_MS 30
+#define CONNECT_BUTTON_DEBOUNCE_MS 40
 
 static const char *TAG = "connect_button";
 static int s_btn_gpio = CFG_DEFAULT_GPIO_BTN;
+static volatile bool s_press_pending;
+
+/* Heavy work off the tiny poll task — avoids stack overflow. */
+static void connect_worker(void *arg)
+{
+    (void)arg;
+    ESP_LOGI(TAG, "Connect worker started");
+    (void)web_portal_connect_from_button();
+    s_press_pending = false;
+    vTaskDelete(NULL);
+}
 
 static void connect_button_task(void *arg)
 {
@@ -23,17 +34,21 @@ static void connect_button_task(void *arg)
     for (;;) {
         int raw = gpio_get_level(s_btn_gpio);
         if (raw != stable) {
-            if ((xTaskGetTickCount() - changed_at) >= pdMS_TO_TICKS(CONNECT_BUTTON_DEBOUNCE_MS)) {
+            if ((xTaskGetTickCount() - changed_at) >= pdMS_TO_TICKS(CONNECT_BUTTON_DEBOUNCE_MS))
                 stable = raw;
-            }
         } else {
             changed_at = xTaskGetTickCount();
         }
 
-        /* Falling edge (active-low): Connect while portal is up */
-        if (last == 1 && stable == 0) {
-            if (web_portal_is_running())
-                (void)web_portal_connect_from_button();
+        /* Falling edge (active-low) while portal up */
+        if (last == 1 && stable == 0 && !s_press_pending) {
+            if (web_portal_is_running()) {
+                s_press_pending = true;
+                if (xTaskCreate(connect_worker, "conn_work", 8192, NULL, 5, NULL) != pdPASS) {
+                    ESP_LOGE(TAG, "connect_worker create failed");
+                    s_press_pending = false;
+                }
+            }
         }
         last = stable;
         vTaskDelay(pdMS_TO_TICKS(CONNECT_BUTTON_POLL_MS));
@@ -58,6 +73,7 @@ esp_err_t connect_button_init(void)
     if (err != ESP_OK)
         return err;
 
+    /* Poll task stays light: only GPIO + spawn worker */
     if (xTaskCreate(connect_button_task, "connect_btn", 3072, NULL, 3, NULL) != pdPASS) {
         ESP_LOGE(TAG, "Failed to create Connect button task");
         return ESP_ERR_NO_MEM;
