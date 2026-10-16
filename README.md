@@ -31,19 +31,19 @@ Just for First time Set-up esp32-s3 board - Next time just Push the Button or TA
 	if you have NOT :
 		1. Connect PS5 to ESP32-PS5-Setup
 
-	3. **PS5 Console IP** — Ping & Save IP
+	2. **PS5 Console IP** — Ping & Save IP
 		See your Consol IP from Setting → Network → Connection Status → View Connection Status → IPv4 address
 		
-	4. **PS5 registration** — PIN + PSN Account ID (base64) → Save & Register
-		"Remote Play PIN" Can Get Fraom Setting → System → Remote Play → Pair Device
+	3. **PS5 registration** — PIN + PSN Account ID (base64) → Save & Register
+		"Remote Play PIN" Can Get From Setting → System → Remote Play → Pair Device
 			If dont Have Yuor "PSN Account ID (base64)" :
 				Jailbrooken PS5,Eassily can Get  "PIN" + "PSN Account ID" From OnionHEN,pizzaHEN,elfArsenal or same payload from Remote Play Menu
 				NON-Jailbreak --> Use this → https://pyrosoft.pro/psnid/
 				
-   5. **Remote Play** — Connect
+   4. **Remote Play** — Connect
 		if "IP" & "PIN" & "PSN Account ID" is correct,Connection established
 
-   6. **Controller** — Show name, battery, rumble(OFF or ON)
+   5. **Controller** — Show name, battery, rumble(OFF or ON)
    6. **Stick deadzone** — drift, triggers, button remap
    7. **Hardware & defaults** — RGB GPIO, button GPIO, AP password, reset defaults
    
