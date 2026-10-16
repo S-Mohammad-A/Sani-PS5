@@ -1,0 +1,26 @@
+idf_component_register(
+    SRCS
+        "app_main.c"
+        "wifi_manager.c"
+        "web_portal.c"
+        "config_store.c"
+        "ws2812.c"
+        "remoteplay_stub.c"
+        "bluepad32_bridge.c"
+        "input_config.c"
+        "connect_button.c"
+        "factory_reset_button.c"
+    INCLUDE_DIRS "."
+    REQUIRES
+        esp_wifi
+        esp_netif
+        esp_http_server
+        nvs_flash
+        json
+        led_strip
+        bluepad32
+        btstack
+        chiaki_rp
+        lwip
+        driver
+)
