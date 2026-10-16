@@ -85,4 +85,6 @@ Built with:
 - **Chiaki** — PlayStation Remote Play client
 - **Bluepad32** — Bluetooth gamepads on ESP32
 
+Chiaki Ported for ESP32S3, so must use my Component from releases page.
+Bluepad32 changed for this project too.
 Thanks to the authors and contributors of these projects.
