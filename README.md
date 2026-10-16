@@ -26,10 +26,10 @@ Just for First time Set-up esp32-s3 board - Next time just Push the Button or TA
    - Password: `12345678` (changeable in portal)
 2. Connect to the AP → open `http://192.168.4.1`
 3. Portal order:
-	if you have yuor own network:
+	if you have your own network:
 		1. **Wi-Fi** — home SSID/password → Save → reboot
-	if you have NOT :
-		1. Connect PS5 to ESP32-PS5-Setup
+	if you have NOT Home Network :
+		1. Connect PS5 to "ESP32-PS5-Setup" Access Point.
 
 	2. **PS5 Console IP** — Ping & Save IP
 		See your Consol IP from Setting → Network → Connection Status → View Connection Status → IPv4 address
@@ -48,27 +48,27 @@ Just for First time Set-up esp32-s3 board - Next time just Push the Button or TA
    7. **Hardware & defaults** — RGB GPIO, button GPIO, AP password, reset defaults
    
 4. Pair the Xbox controller (hold pair buttin on the pad ESP32 Automatically get Connected).
-5. Connect to PS5 from Web Portal or short-press the hardware button (default GPIO14).
-6. if forget AP password short-press Default-RESET button to reset to 12345678 (default GPIO13).
+5. Connect to PS5 from Web Portal or short-press the hardware button (default GPIO13).
+6. if forget AP password short-press Default-RESET button to reset to 12345678 (default GPIO14).
 	Hint: all button work with Ground .No need any resistor.
 
 ## Hardware buttons
 
 | GPIO | Function |
 |------|----------|
-| **14** (default, configurable) | Short press while portal is open → Connect to PS5 |
-| **13** (fixed) | Press → factory reset (drift, mapping, AP password, default GPIOs) and reboot |
+| **13** (default, configurable) | Short press while portal is open → Connect to PS5 |
+| **14** (fixed) | Press → factory reset (drift, mapping, AP password, default GPIOs) and reboot |
 
 ## LED (default GPIO48)
 
 | Color | Meaning |
 |--------|---------|
-| Yellow | AP mode |
-| Red | Wi-Fi OK, not registered |
-| Green | Wi-Fi OK, registered |
-| Blue | Remote Play connected |
-| Purple blink | Session ended / portal ready |
-Hint: after Remote successfull LED get Color From Game/Consol Like PS4/PS5 Controller.
+| Yellow | AP mode(When Cant Connect to Wi-Fi or Wi-Fi Not Set)|
+| Red | Wi-Fi OK, not Registered(PIN&ID NOT Set) |
+| Green | Wi-Fi OK, Registered(Ready for Connect) |
+| Blue | Remote Play connected & Portal Set off |
+| Purple blink | Session Ended/Dissconnect & Portal Ready again(For Connect again board must RESET |
+Hint: after Remote successfull LED get Color From Game/Consol Like PS4/PS5 Lightbar.
 
 
 
@@ -76,7 +76,7 @@ Hint: after Remote successfull LED get Color From Game/Consol Like PS4/PS5 Contr
 
 - Controller-only (no video/audio).
 - GPIO and SoftAP password changes: save in portal; **reboot** for GPIO; AP password applies on next SoftAP start.
-- **Reset defaults** restores drift, button mapping, AP password, and default GPIO numbers.
+- **Reset defaults** restores drift, button mapping, AP password, and default GPIO numbers.also Use when forget portal password.
 
 ## Credits
 
@@ -87,4 +87,5 @@ Built with:
 
 Chiaki Ported for ESP32S3, so must use my Component from releases page.
 Bluepad32 changed for this project too.
+
 Thanks to the authors and contributors of these projects.
